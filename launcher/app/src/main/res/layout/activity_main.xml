@@ -199,6 +199,22 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnBluetooth"
+                    style="@style/TopButton"
+                    android:text="@string/bluetooth"
+                    android:drawableStart="@drawable/ic_bluetooth"
+                    android:nextFocusDown="@+id/grid"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/btnSleep"
+                    style="@style/TopButton"
+                    android:text="@string/sleep_timer"
+                    android:drawableStart="@drawable/ic_sleep"
+                    android:nextFocusDown="@+id/grid"
+                    android:visibility="gone" />
+
+                <TextView
                     android:id="@+id/btnReorder"
                     style="@style/TopButtonIcon"
                     android:contentDescription="@string/reorder"

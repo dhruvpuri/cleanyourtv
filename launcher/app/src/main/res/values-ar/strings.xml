@@ -4,6 +4,11 @@
     <string name="inputs">المدخلات</string>
     <string name="wifi">واي فاي</string>
     <string name="settings">الإعدادات</string>
+    <string name="bluetooth">بلوتوث</string>
+    <string name="bluetooth_restarting">جارٍ إعادة تشغيل البلوتوث…</string>
+    <string name="sleep_timer">النوم</string>
+    <string name="sleep_minutes">%1$d د</string>
+    <string name="sleep_warning">سيدخل في وضع السكون خلال دقيقة</string>
     <string name="choose_input">المدخلات</string>
     <string name="connected">متصل</string>
     <string name="standby">في وضع الاستعداد</string>

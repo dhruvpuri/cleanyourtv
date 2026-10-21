@@ -4,6 +4,11 @@
     <string name="inputs">Entrades</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Configuració</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Reiniciant el Bluetooth…</string>
+    <string name="sleep_timer">Repòs</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="sleep_warning">Entrarà en repòs d\'aquí a 1 minut</string>
     <string name="choose_input">Entrades</string>
     <string name="connected">Connectat</string>
     <string name="standby">En espera</string>

@@ -4,6 +4,11 @@
     <string name="inputs">Ulazi</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Podešavanja</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Ponovno pokretanje Bluetooth-a…</string>
+    <string name="sleep_timer">Spavanje</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="sleep_warning">Spavanje za 1 minut</string>
     <string name="choose_input">Ulazi</string>
     <string name="connected">Povezano</string>
     <string name="standby">Mirovanje</string>

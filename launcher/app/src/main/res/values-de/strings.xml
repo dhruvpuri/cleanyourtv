@@ -4,6 +4,11 @@
     <string name="inputs">Quellen</string>
     <string name="wifi">WLAN</string>
     <string name="settings">Einstellungen</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Bluetooth wird neu gestartet…</string>
+    <string name="sleep_timer">Schlafen</string>
+    <string name="sleep_minutes">%1$d Min.</string>
+    <string name="sleep_warning">Standby in 1 Minute</string>
     <string name="choose_input">Quellen</string>
     <string name="connected">Verbunden</string>
     <string name="standby">Standby</string>

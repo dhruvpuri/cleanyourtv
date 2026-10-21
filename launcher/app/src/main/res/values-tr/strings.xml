@@ -4,6 +4,11 @@
     <string name="inputs">Girişler</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Ayarlar</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Bluetooth yeniden başlatılıyor…</string>
+    <string name="sleep_timer">Uyku</string>
+    <string name="sleep_minutes">%1$d dk</string>
+    <string name="sleep_warning">1 dakika sonra uyku moduna geçecek</string>
     <string name="choose_input">Girişler</string>
     <string name="connected">Bağlı</string>
     <string name="standby">Bekleme</string>

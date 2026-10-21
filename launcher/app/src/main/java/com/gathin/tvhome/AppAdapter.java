@@ -5,6 +5,8 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
@@ -175,6 +177,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private int docked, emptySlots;
     /** Never shown as tiles (res/values/config.xml, hidden_apps). */
     private final Set<String> hidden;
+    /** Theme tile restyles (theme app_overrides): package to the name and borrowed banner it shows. */
+    private final Map<String, Config.AppOverride> overrides;
     private final boolean animations;
     private final boolean advancedEffects;
     private final boolean showLibrary;
@@ -192,6 +196,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.favourites = cfg.dockApps;
         this.fillDock = cfg.fillDock;
         this.hidden = new HashSet<>(cfg.hiddenApps);
+        this.overrides = cfg.appOverrides;
         this.animations = cfg.animations;
         this.advancedEffects = cfg.animations && cfg.advancedEffects;
         this.showHomeSettings = cfg.showHomeSettingsShortcut;
@@ -243,8 +248,11 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // Same cleaner as the card prompt: an app label with a bidi override or line separator must not
             // redraw the tile name as something else (#117).
             String label = card != null ? card.label : Cards.cleanLabel(String.valueOf(ri.loadLabel(pm)), pkg);
+            Config.AppOverride restyle = card == null ? overrides.get(pkg) : null;
+            if (restyle != null && !restyle.label.isEmpty()) label = Cards.cleanLabel(restyle.label, label);
             if (!seen.add(pkg + '\n' + label)) continue;
-            Drawable banner = loadBanner(pm, ri);
+            Drawable banner = restyle != null && !restyle.bannerFrom.isEmpty() ? borrowedBanner(pm, restyle.bannerFrom) : null;
+            if (banner == null) banner = loadBanner(pm, ri);
             Drawable icon = ri.loadIcon(pm);
             if (card != null) {
                 fresh.add(new Entry(Entry.CARD, label, component, banner, icon, card.caption, card.accent));
@@ -287,18 +295,41 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private Drawable loadBanner(PackageManager pm, ResolveInfo ri) {
-        int id = ri.activityInfo.banner;
-        if (id == 0) id = ri.activityInfo.applicationInfo.banner;
+        return loadBanner(pm, ri.activityInfo);
+    }
+
+    private Drawable loadBanner(PackageManager pm, ActivityInfo info) {
+        int id = info.banner;
+        if (id == 0) id = info.applicationInfo.banner;
         if (id != 0) {
             try {
-                Resources resources = pm.getResourcesForApplication(ri.activityInfo.applicationInfo);
+                Resources resources = pm.getResourcesForApplication(info.applicationInfo);
                 // Keep at least xhdpi detail rather than downsampling artwork before the focus zoom.
                 int density = Math.max(DisplayMetrics.DENSITY_XHIGH, ctx.getResources().getDisplayMetrics().densityDpi);
                 return resources.getDrawableForDensity(id, density, null);
             } catch (PackageManager.NameNotFoundException | Resources.NotFoundException ignored) {
             }
         }
-        return ri.activityInfo.loadBanner(pm);
+        return info.loadBanner(pm);
+    }
+
+    /**
+     * The banner of another installed app (theme app_overrides, banner_from), found even when that app is
+     * disabled, or null when it is not installed or declares none; the tile then keeps its own banner.
+     */
+    private Drawable borrowedBanner(PackageManager pm, String pkg) {
+        try {
+            PackageInfo info = pm.getPackageInfo(pkg, PackageManager.GET_ACTIVITIES
+                    | PackageManager.MATCH_DISABLED_COMPONENTS | PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS);
+            if (info.activities == null) return null;
+            for (ActivityInfo activity : info.activities) {
+                if (activity.banner == 0 && activity.applicationInfo.banner == 0) continue;
+                Drawable banner = loadBanner(pm, activity);
+                if (banner != null) return banner;
+            }
+        } catch (PackageManager.NameNotFoundException ignored) {
+        }
+        return null;
     }
 
     @NonNull

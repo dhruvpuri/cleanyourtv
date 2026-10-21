@@ -4,6 +4,11 @@
     <string name="inputs">Lähteet</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Asetukset</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Käynnistetään Bluetooth uudelleen…</string>
+    <string name="sleep_timer">Uni</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="sleep_warning">Siirtyy lepotilaan 1 minuutin kuluttua</string>
     <string name="choose_input">Lähteet</string>
     <string name="connected">Yhdistetty</string>
     <string name="standby">Valmiustila</string>

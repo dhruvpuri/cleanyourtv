@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,7 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The launcher's settings: the values in res/values/config.xml, with an optional overlay read from
@@ -34,6 +38,17 @@ final class Config {
     static final String SETTINGS_NAME = "launcher_settings";
     private static final String THEME_REVISION_NAME = "theme_revision";
     private static final String THEME_SIGNATURE_KEY = "theme_signature";
+
+    /** A theme's tile restyle for one app: the name to show and/or another installed app whose banner to borrow. */
+    static final class AppOverride {
+        final String label;
+        final String bannerFrom;
+
+        AppOverride(String label, String bannerFrom) {
+            this.label = label;
+            this.bannerFrom = bannerFrom;
+        }
+    }
 
     final List<String> dockApps;
     /** Grid apps fill the dock slots dock_apps leaves free (config.xml, fill_dock); on by default, false leaves the slots empty. */
@@ -58,6 +73,12 @@ final class Config {
     final boolean dockRow;
     /** Reorder button in the top bar (config.xml reorder_button); the Settings long-press menu offers it either way. */
     final boolean reorderButton;
+    /** Bluetooth pill in the top bar that opens the TV's Bluetooth settings (config.xml show_bluetooth_pill). */
+    final boolean showBluetoothPill;
+    /** Sleep-timer pill in the top bar (config.xml show_sleep_pill); needs HomeKeyService, which counts down. */
+    final boolean showSleepPill;
+    /** Settings pill in the top bar (config.xml show_settings_pill); on by default. Hidden, it takes the launcher settings menu (hold OK) with it. */
+    final boolean showSettingsPill;
     final String vpnApp;
     final boolean showHomeSettingsShortcut;
     /** One line under the clock: CPU, free memory, free storage. Off unless config or a theme turns it on. */
@@ -68,10 +89,18 @@ final class Config {
     final int backgroundColor;
     /** Time-of-day backdrop, 0 to 100 (config.xml, sky_intensity); 0 keeps the plain background. */
     final int skyIntensity;
+    /** Remote scancodes that open Settings through HomeKeyService (config.xml or a theme, settings_key_scancodes). */
+    final int[] settingsScancodes;
     /** Remote keycodes that open Settings through HomeKeyService (config.xml, settings_key_keycodes). */
     final int[] settingsKeycodes;
     /** The Settings button opens the quick settings panel instead of the TV's Settings (settings_key_panel). */
     final boolean settingsKeyPanel;
+    /** Remote keycode to the package it launches, through HomeKeyService (theme key_shortcuts); empty unless a theme sets it. */
+    final Map<Integer, String> keyShortcuts;
+    /** Stock launcher whose home screen is sent back here if the firmware revives it (config.xml stock_home_redirect). */
+    final String stockHomeRedirect;
+    /** Package to tile restyle (theme app_overrides); empty unless a theme sets it. */
+    final Map<String, AppOverride> appOverrides;
     /** Full-screen picture behind the launcher, or null for the plain colour. */
     final File wallpaper;
     /** Whether the overlay file was present and parsed. */
@@ -82,10 +111,10 @@ final class Config {
     private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, String liveTvPackage,
                    String liveTvAction, String sourcePanelService, String sourcePanelAction, String inputAction,
                    int columns, int rowsBelowDock, boolean animations, boolean advancedEffects,
-                   boolean shamsiDate, boolean moduleCards, boolean reducedMotion, boolean dockTitle, boolean dockRow, boolean reorderButton, String vpnApp,
+                   boolean shamsiDate, boolean moduleCards, boolean reducedMotion, boolean dockTitle, boolean dockRow, boolean reorderButton, boolean showBluetoothPill, boolean showSleepPill, boolean showSettingsPill, String vpnApp,
                    boolean showHomeSettingsShortcut, boolean showStats, boolean appLibrary, int backgroundColor, int skyIntensity,
-                   int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
-                   Festival festival) {
+                   int[] settingsScancodes, int[] settingsKeycodes, boolean settingsKeyPanel, Map<Integer, String> keyShortcuts, String stockHomeRedirect, Map<String, AppOverride> appOverrides,
+                   File wallpaper, boolean overlayApplied, Festival festival) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
@@ -104,14 +133,21 @@ final class Config {
         this.dockTitle = dockTitle;
         this.dockRow = dockRow;
         this.reorderButton = reorderButton;
+        this.showBluetoothPill = showBluetoothPill;
+        this.showSleepPill = showSleepPill;
+        this.showSettingsPill = showSettingsPill;
         this.vpnApp = vpnApp;
         this.showHomeSettingsShortcut = showHomeSettingsShortcut;
         this.showStats = showStats;
         this.appLibrary = appLibrary;
         this.backgroundColor = backgroundColor;
         this.skyIntensity = skyIntensity;
+        this.settingsScancodes = settingsScancodes;
         this.settingsKeycodes = settingsKeycodes;
         this.settingsKeyPanel = settingsKeyPanel;
+        this.keyShortcuts = Collections.unmodifiableMap(keyShortcuts);
+        this.stockHomeRedirect = stockHomeRedirect;
+        this.appOverrides = Collections.unmodifiableMap(appOverrides);
         this.wallpaper = wallpaper;
         this.overlayApplied = overlayApplied;
         this.festival = festival;
@@ -142,14 +178,21 @@ final class Config {
         boolean dockTitle = res.getBoolean(R.bool.dock_title);
         boolean dockRow = res.getBoolean(R.bool.dock_row);
         boolean reorderButton = res.getBoolean(R.bool.reorder_button);
+        boolean showBluetoothPill = res.getBoolean(R.bool.show_bluetooth_pill);
+        boolean showSleepPill = res.getBoolean(R.bool.show_sleep_pill);
+        boolean showSettingsPill = res.getBoolean(R.bool.show_settings_pill);
         String vpn = res.getString(R.string.vpn_app).trim();
         boolean homeSettings = res.getBoolean(R.bool.show_home_settings_shortcut);
         boolean showStats = res.getBoolean(R.bool.show_stats);
         boolean library = res.getBoolean(R.bool.app_library);
         int background = 0xFF000000;
         int skyIntensity = res.getInteger(R.integer.sky_intensity);
+        int[] settingsScancodes = res.getIntArray(R.array.settings_key_scancodes);
         int[] settingsKeycodes = res.getIntArray(R.array.settings_key_keycodes);
         boolean settingsKeyPanel = res.getBoolean(R.bool.settings_key_panel);
+        Map<Integer, String> keyShortcuts = Collections.emptyMap();
+        String stockHomeRedirect = res.getString(R.string.stock_home_redirect).trim();
+        Map<String, AppOverride> appOverrides = Collections.emptyMap();
         boolean applied = false;
 
         File dir = dir(ctx);
@@ -175,14 +218,21 @@ final class Config {
             dockTitle = bool(json, "dock_title", dockTitle);
             dockRow = bool(json, "dock_row", dockRow);
             reorderButton = bool(json, "reorder_button", reorderButton);
+            showBluetoothPill = bool(json, "show_bluetooth_pill", showBluetoothPill);
+            showSleepPill = bool(json, "show_sleep_pill", showSleepPill);
+            showSettingsPill = bool(json, "show_settings_pill", showSettingsPill);
             vpn = string(json, "vpn_app", vpn);
             homeSettings = bool(json, "show_home_settings_shortcut", homeSettings);
             showStats = bool(json, "show_stats", showStats);
             library = bool(json, "app_library", library);
             background = color(json, "background_color", background);
             skyIntensity = integer(json, "sky_intensity", skyIntensity, 0, 100);
+            settingsScancodes = intArray(json, "settings_key_scancodes", settingsScancodes);
             settingsKeycodes = intArray(json, "settings_key_keycodes", settingsKeycodes);
             settingsKeyPanel = bool(json, "settings_key_panel", settingsKeyPanel);
+            keyShortcuts = keyShortcuts(json, "key_shortcuts", keyShortcuts);
+            stockHomeRedirect = string(json, "stock_home_redirect", stockHomeRedirect);
+            appOverrides = appOverrides(json, "app_overrides", appOverrides);
         }
         // A theme push or reset invalidates choices made on the TV. On first use, remember the
         // current theme without clearing choices from an older launcher version.
@@ -202,8 +252,8 @@ final class Config {
 
         return new Config(dock, fillDock, hidden, liveTv, liveTvAction, panelService, panelAction, inputAction,
                 Math.max(1, columns), Math.max(0, rowsBelow), animations, advancedEffects,
-                shamsi, moduleCards, reducedMotion, dockTitle, dockRow, reorderButton, vpn, homeSettings, showStats, library, background,
-                Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
+                shamsi, moduleCards, reducedMotion, dockTitle, dockRow, reorderButton, showBluetoothPill, showSleepPill, showSettingsPill, vpn, homeSettings, showStats, library, background,
+                Math.max(0, Math.min(100, skyIntensity)), settingsScancodes, settingsKeycodes, settingsKeyPanel, keyShortcuts, stockHomeRedirect, appOverrides, wallpaper, applied,
                 festival);
     }
 
@@ -299,6 +349,47 @@ final class Config {
             if (!(item instanceof Number)) return fallback;
             out[i] = ((Number) item).intValue();
             if (out[i] < 1) return fallback;
+        }
+        return out;
+    }
+
+    /**
+     * Remote keys that launch an app: {@code {"KEYCODE_F4": "com.example.app"}}. A key is a KEYCODE_ name or a
+     * plain keycode number. An entry with an unknown key or an empty package is skipped, so one typo costs
+     * one shortcut, not the whole map.
+     */
+    private static Map<Integer, String> keyShortcuts(JSONObject o, String key, Map<Integer, String> fallback) {
+        Object v = o.opt(key);
+        if (!(v instanceof JSONObject)) return fallback;
+        JSONObject map = (JSONObject) v;
+        Map<Integer, String> out = new LinkedHashMap<>();
+        for (Iterator<String> names = map.keys(); names.hasNext(); ) {
+            String name = names.next();
+            int keyCode = KeyEvent.keyCodeFromString(name.trim());
+            Object target = map.opt(name);
+            if (keyCode == KeyEvent.KEYCODE_UNKNOWN || !(target instanceof String)) continue;
+            String pkg = ((String) target).trim();
+            if (!pkg.isEmpty()) out.put(keyCode, pkg);
+        }
+        return out;
+    }
+
+    /**
+     * Tile restyles: {@code {"com.example.app": {"label": "Name", "banner_from": "com.other.app"}}}. An entry
+     * needs a label, a banner_from or both; anything else in it is skipped on its own.
+     */
+    private static Map<String, AppOverride> appOverrides(JSONObject o, String key, Map<String, AppOverride> fallback) {
+        Object v = o.opt(key);
+        if (!(v instanceof JSONObject)) return fallback;
+        JSONObject map = (JSONObject) v;
+        Map<String, AppOverride> out = new LinkedHashMap<>();
+        for (Iterator<String> pkgs = map.keys(); pkgs.hasNext(); ) {
+            String pkg = pkgs.next().trim();
+            Object entry = map.opt(pkg);
+            if (pkg.isEmpty() || !(entry instanceof JSONObject)) continue;
+            String label = string((JSONObject) entry, "label", "");
+            String bannerFrom = string((JSONObject) entry, "banner_from", "");
+            if (!label.isEmpty() || !bannerFrom.isEmpty()) out.put(pkg, new AppOverride(label, bannerFrom));
         }
         return out;
     }

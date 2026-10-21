@@ -14,6 +14,11 @@
          FINE" rule does not apply here. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
         tools:ignore="CoarseFineLocation" />
+    <!-- The optional Bluetooth pill restarts the adapter on press (BluetoothRefresh) and opens Google TV's pairing
+         screen on hold, which refuses callers without BLUETOOTH_ADMIN. Both are normal permissions, granted at
+         install; Android 12+ replaced them, and Android 13+ no longer lets apps toggle the adapter at all. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 
     <!-- Android 11+ package visibility: lets the launcher list the TV apps it shows as tiles, and the
          apps that declare a module card (docs/specs/card.md). -->
@@ -29,6 +34,11 @@
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="com.gathin.tvhome.category.DOCK_CARD" />
+        </intent>
+        <!-- stock_home_redirect: HomeKeyService looks up the stock launcher's HOME activity. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
         </intent>
         <!-- China-market MIUI TV firmware: the Settings and Wi-Fi pills fall back to Xiaomi's settings app. -->
         <package android:name="com.xiaomi.mitv.settings" />

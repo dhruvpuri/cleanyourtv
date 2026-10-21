@@ -37,6 +37,9 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `dock_title` | bool | The focused dock app's name in large type above the dock (`true`); `false` keeps only the glow |
 | `dock_row` | bool | The dock as its own row with a band (`true`); `false` makes the dock apps the first tiles of one plain grid |
 | `reorder_button` | bool | A reorder button in the top bar (`false` by default); reordering is always in the Settings button's long-press menu |
+| `show_bluetooth_pill` | bool | A Bluetooth pill in the top bar, between Wi-Fi and Settings (`false` by default). A press restarts Bluetooth, which makes the TV reconnect its paired devices; hold OK to open Bluetooth settings. Needs Android 11 or older, where apps may still switch Bluetooth |
+| `show_sleep_pill` | bool | A sleep-timer pill in the top bar, after the Bluetooth pill (`false` by default). OK steps Off, 15, 30, 60, 90 minutes, Off, and the pill shows the minutes left; the countdown keeps running over other apps and then locks the screen, which puts the TV to sleep, after a toast one minute before. It needs the Home button accessibility service (`HomeKeyService`) to be enabled, because that service does the counting; without it the pill shows "Not available on this TV". Locking the screen needs Android 9 or newer |
+| `show_settings_pill` | bool | The Settings pill at the end of the top bar (`true` by default). `false` frees its room, but it also hides the launcher settings menu (hold OK on that pill, which holds Launcher settings, Module cards and Reorder); set it back to `true` to get the menu back. Pair it with `settings_key_scancodes` or `settings_key_keycodes` so the remote's gear button still opens Settings |
 | `app_library` | bool | An App library pill after the last Home row: every installed app, add one to Home or take it off (`false` by default). The choices stay on the TV when a theme is pushed or reset; see [docs/app-library.md](../docs/app-library.md) |
 | `shamsi_date` | bool | Show the Solar Hijri date above the Gregorian one |
 | `module_cards` | bool | Look for module cards and ask about them (`true`); `false` turns the feature off |
@@ -53,8 +56,10 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `festival_until` | `YYYY-MM-DD` | Last day the festive skin shows; it switches itself off after that. A malformed date turns it off |
 | `greeting` | string | Replaces the time-of-day greeting while the festive skin is on |
 | `accent_color` | `#RRGGBB` | Colour of the focus glow while the festive skin is on; diya gold if not set |
+| `settings_key_scancodes` | list of scancodes | Remote buttons that open Settings by raw scancode, for buttons Android has no keycode for (Xiaomi/Fengmi projector gear: `[384]`; XGIMI Vibe One gear: `[66]`). Find it with `tools/tv.py 'getevent -l -c 8'` while pressing the button |
 | `settings_key_keycodes` | list of keycodes | Remote buttons that open Settings, for `HomeKeyService` (TCL Google TV gear: `[83]`) |
 | `settings_key_panel` | bool | Those buttons open a small quick settings panel (TV settings, Display, Network, Apps, Launcher settings) instead of the TV's Settings |
+| `key_shortcuts` | object | Remote keycode to the package `HomeKeyService` launches when that key is released; theme only, empty by default. See [Key shortcuts](#key-shortcuts) |
 
 ## Wallpapers
 
@@ -86,6 +91,21 @@ the plain background; the default is off (the reference launcher looks exactly a
 ```json
 { "sky_intensity": 60 }
 ```
+
+## Key shortcuts
+
+`"key_shortcuts"` maps a remote button to an app. A key is a `KEYCODE_` name or a plain keycode number;
+an entry with an unknown key or an empty package is skipped.
+
+```json
+{ "key_shortcuts": { "KEYCODE_F4": "io.gh.reisxd.tizentube.cobalt", "KEYCODE_F8": "org.videolan.vlc" } }
+```
+
+`HomeKeyService` launches the app when the key is released. It sees the key before the system or the
+manufacturer's own key handler does and consumes it, even if the app is not installed (a toast says it
+is not available). It only works while the accessibility service is enabled: install with
+`HOME_KEY_SERVICE=1`. `tools/theme.sh` restarts the service when it pushes a theme. To find a remote's
+keycodes, press its buttons while running `tools/tv.py 'logcat -v time | grep -i keycode'`, or use `getevent`.
 
 ## Adding a theme
 

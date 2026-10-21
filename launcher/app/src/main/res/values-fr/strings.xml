@@ -4,6 +4,11 @@
     <string name="inputs">Sources</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Paramètres</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Redémarrage du Bluetooth…</string>
+    <string name="sleep_timer">Veille</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="sleep_warning">Mise en veille dans 1 minute</string>
     <string name="choose_input">Sources</string>
     <string name="connected">Connecté</string>
     <string name="standby">En veille</string>

@@ -167,6 +167,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** Tile order when reorder mode started, to save only when something moved. */
     private List<String> orderAtStart;
     private View btnReorder;
+    private View btnBluetooth;
+    private TextView btnSleep;
     /** dock_apps as loaded (config.xml or a theme): a saved Order only applies while these are unchanged. */
     private List<String> dockApps;
     /** fill_dock false: the dock can have empty slots, which reorder mode leaves out and restores afterwards. */
@@ -228,6 +230,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         public void run() {
             updateGreeting();
             updateWifiLabel();
+            updateSleepLabel();
             sky.update();
             handler.postDelayed(this, MINUTE_MS);
         }
@@ -428,9 +431,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return true;
         });
         btnSettings.setOnClickListener(v -> open(systemIntent(Settings.ACTION_SETTINGS)));
+        btnSettings.setVisibility(cfg.showSettingsPill ? View.VISIBLE : View.GONE);
         btnReorder = findViewById(R.id.btnReorder);
         btnReorder.setOnClickListener(v -> toggleReorder());
         btnReorder.setVisibility(cfg.reorderButton ? View.VISIBLE : View.GONE);
+        btnBluetooth = findViewById(R.id.btnBluetooth);
+        btnBluetooth.setOnClickListener(v -> BluetoothRefresh.run(this));
+        btnBluetooth.setOnLongClickListener(v -> {
+            open(bluetoothIntent());
+            return true;
+        });
+        btnBluetooth.setVisibility(cfg.showBluetoothPill ? View.VISIBLE : View.GONE);
+        btnSleep = findViewById(R.id.btnSleep);
+        btnSleep.setOnClickListener(v -> cycleSleepTimer());
+        btnSleep.setVisibility(cfg.showSleepPill ? View.VISIBLE : View.GONE);
         btnSettings.setOnLongClickListener(v -> {
             showSettingsMenu();
             return true;
@@ -438,7 +452,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // Keep focus on the top bar at its ends and at the top: Android's focus finder would otherwise
         // jump to a tile far below when there is nothing in that direction.
-        boolean rtlMenuBar = getResources().getBoolean(R.bool.rtl_menu_bar);
         View.OnKeyListener pillKeys = (v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
@@ -447,18 +460,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 focusTile(lastFocused % COLUMNS);
                 return true;
             }
-            int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : R.id.btnWifi;
-            int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
-            int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
-            return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton;
+            // The pills showing at each end, whichever of them a theme hides.
+            ViewGroup bar = findViewById(R.id.topButtons);
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v == edgePill(bar, true);
+            return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v == edgePill(bar, false);
         };
         btnInputs.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
         btnReorder.setOnKeyListener(pillKeys);
+        btnBluetooth.setOnKeyListener(pillKeys);
+        btnSleep.setOnKeyListener(pillKeys);
         if (advancedEffects) {
-            for (View button : new View[]{btnInputs, btnWifi, btnReorder, btnSettings}) {
+            for (View button : new View[]{btnInputs, btnWifi, btnBluetooth, btnSleep, btnReorder, btnSettings}) {
                 button.setOnFocusChangeListener((view, focused) -> view.animate()
                         .scaleX(focused ? 1.04f : 1f).scaleY(focused ? 1.04f : 1f)
                         .setDuration(160).start());
@@ -576,6 +590,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         rebuildOnResume = false;
         updateGreeting();
         updateWifiLabel();
+        updateSleepLabel();
         updateInputsButton();
         if (showStats) startStats();
         sky.update();
@@ -1489,6 +1504,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (shamsi) shamsiDate.setText(Shamsi.today());
     }
 
+    /** Sleep pill press: Off, 15, 30, 60, 90 minutes. HomeKeyService counts down, so without it there is nothing to start. */
+    private void cycleSleepTimer() {
+        if (!SleepTimer.cycle()) Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+        updateSleepLabel();
+    }
+
+    /** "Sleep" while off, the minutes left while a timer runs (the moon icon is in the layout). */
+    private void updateSleepLabel() {
+        btnSleep.setText(SleepTimer.running()
+                ? getString(R.string.sleep_minutes, SleepTimer.minutesLeft())
+                : getString(R.string.sleep_timer));
+    }
+
     /** Shows the Wi-Fi network name on the button when we can read it, otherwise the connection type. */
     private void updateWifiLabel() {
         String text = getString(R.string.wifi);
@@ -1671,11 +1699,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
     }
 
+    /** Bluetooth settings: the standard action, or the pairing screen of TV Settings builds that do not answer it (Google TV). */
+    private Intent bluetoothIntent() {
+        Intent i = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+        if (i.resolveActivity(getPackageManager()) != null) return i;
+        return new Intent().setComponent(new ComponentName(
+                "com.android.tv.settings", "com.android.tv.settings.accessories.AddAccessoryActivity"));
+    }
+
     private void open(Intent i) {
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try {
             startActivity(i);
-        } catch (ActivityNotFoundException e) {
+        } catch (ActivityNotFoundException | SecurityException e) {
             Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
         }
     }
@@ -1697,6 +1733,23 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
         }
         open(new Intent(inputAction).setDataAndType(uri, "vnd.android.cursor.item/channel"));
+    }
+
+    /** The leftmost or rightmost pill of the top bar that is showing; both layouts list the pills left to right. */
+    private static View edgePill(ViewGroup bar, boolean left) {
+        for (int i = 0; i < bar.getChildCount(); i++) {
+            View pill = bar.getChildAt(left ? i : bar.getChildCount() - 1 - i);
+            if (pill.getVisibility() == View.VISIBLE) return pill;
+        }
+        return bar;
+    }
+
+    /**
+     * What the launcher settings menu and the Module cards list hang from: the Settings pill, which sits at the
+     * Settings end of the bar. With show_settings_pill off (and so no way to open either) the pill that took its place.
+     */
+    private View menuAnchor() {
+        return edgePill(findViewById(R.id.topButtons), getResources().getBoolean(R.bool.rtl_menu_bar));
     }
 
     /** Dropdown menu under the Inputs pill: HDMI ports (with connection state), AV and Live TV. */
@@ -1851,7 +1904,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** Keep a normal Settings click for the TV; the launcher's choices live behind hold OK. */
     private void showSettingsMenu() {
-        View anchor = findViewById(R.id.btnSettings);
+        View anchor = menuAnchor();
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         PopupWindow popup = glassPopup(panel, (int) (200 * density));
@@ -1993,7 +2046,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private void showModuleCardsNow() {
-        View anchor = findViewById(R.id.btnSettings);
+        View anchor = menuAnchor();
         View panel = getLayoutInflater().inflate(R.layout.popup_cards, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         final PopupWindow popup = glassPopup(panel, (int) (400 * density));

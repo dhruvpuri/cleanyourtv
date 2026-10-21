@@ -4,6 +4,11 @@
     <string name="inputs">כניסות</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">הגדרות</string>
+    <string name="bluetooth">בלוטות\'</string>
+    <string name="bluetooth_restarting">מפעיל מחדש את הבלוטות\'…</string>
+    <string name="sleep_timer">שינה</string>
+    <string name="sleep_minutes">%1$d דק\'</string>
+    <string name="sleep_warning">ייכנס למצב שינה בעוד דקה</string>
     <string name="choose_input">כניסות</string>
     <string name="connected">מחובר</string>
     <string name="standby">בהמתנה</string>

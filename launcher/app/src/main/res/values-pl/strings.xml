@@ -4,6 +4,11 @@
     <string name="inputs">Wejścia</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Ustawienia</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Ponowne uruchamianie Bluetooth…</string>
+    <string name="sleep_timer">Sen</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="sleep_warning">Uśpienie za 1 minutę</string>
     <string name="choose_input">Wejścia</string>
     <string name="connected">Podłączone</string>
     <string name="standby">Czuwanie</string>

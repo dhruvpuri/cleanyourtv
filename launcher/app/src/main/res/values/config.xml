@@ -61,6 +61,12 @@
          Both keys can also be set from a theme's config.json ("settings_key_keycodes": [83]). -->
     <bool name="settings_key_panel">false</bool>
 
+    <!-- Package of the stock launcher, for TVs whose firmware turns it back on after it was disabled. XGIMI's
+         com.xgimi.xrmservice does, on every one of its remote keys, power included. Whenever that launcher's
+         home screen comes up anyway, HomeKeyService (HOME_KEY_SERVICE=1) sends the TV straight back here.
+         A theme's config.json can set it too. Leave empty to omit. -->
+    <string name="stock_home_redirect" translatable="false"></string>
+
     <!-- Show the Solar Hijri (Shamsi) date used in Iran and Afghanistan, e.g. "27 Mehr 1405", above the
          Gregorian date. -->
     <bool name="shamsi_date">false</bool>
@@ -75,6 +81,18 @@
     <!-- A reorder button (two arrows) in the top bar. Off by default: reordering is also in the Settings
          button's long-press menu, so it needs no extra button on screen. -->
     <bool name="reorder_button">false</bool>
+    <!-- A Bluetooth pill in the top bar, between Wi-Fi and Settings, that opens the TV's Bluetooth settings.
+         Off by default; a theme can set "show_bluetooth_pill": true. -->
+    <bool name="show_bluetooth_pill">false</bool>
+    <!-- A sleep-timer pill in the top bar, after the Bluetooth pill. OK steps Off, 15, 30, 60, 90 minutes, Off;
+         at the end the screen locks, which puts the TV to sleep. It only works while the Home button
+         accessibility service (HomeKeyService) is enabled, because that service does the counting; without it the
+         pill says "Not available". Off by default; a theme can set "show_sleep_pill": true. -->
+    <bool name="show_sleep_pill">false</bool>
+    <!-- The Settings pill in the top bar. On by default. false frees its room (the remote's gear button can still
+         open Settings through settings_key_scancodes or settings_key_keycodes), but it also removes the way into the
+         launcher's own settings menu, which opens on hold OK on that pill. -->
+    <bool name="show_settings_pill">true</bool>
 
     <!-- Grid rows left visible under the dock on the home screen. 0 = dock sits at the very bottom. Tiles shrink if
          the dock, its title and this many rows would not otherwise fit the screen height. -->

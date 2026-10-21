@@ -4,6 +4,11 @@
     <string name="inputs">Источники</string>
     <string name="wifi">Wi-Fi</string>
     <string name="settings">Настройки</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_restarting">Перезапуск Bluetooth…</string>
+    <string name="sleep_timer">Сон</string>
+    <string name="sleep_minutes">%1$d мин</string>
+    <string name="sleep_warning">Переход в спящий режим через 1 минуту</string>
     <string name="choose_input">Источники</string>
     <string name="connected">Подключено</string>
     <string name="standby">Ожидание</string>
