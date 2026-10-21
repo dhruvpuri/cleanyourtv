@@ -1,0 +1,35 @@
+{
+  "dock_apps": [
+    "com.example.player",
+    "org.videolan.vlc",
+    "io.gh.reisxd.tizentube.cobalt",
+    "com.apple.atve.androidtv.appletv",
+    "com.crunchyroll.crunchyroid"
+  ],
+  "columns": 6,
+  "rows_below_dock": 1,
+  "live_tv_package": "",
+  "show_bluetooth_pill": true,
+  "key_shortcuts": {
+    "KEYCODE_F4": "io.gh.reisxd.tizentube.cobalt",
+    "KEYCODE_F9": "com.example.player",
+    "KEYCODE_F8": "org.videolan.vlc"
+  },
+  "background_color": "#000000",
+  "wallpaper": false,
+  "app_overrides": {
+    "io.gh.reisxd.tizentube.cobalt": {
+      "label": "YouTube",
+      "banner_from": "com.google.android.youtube.tv"
+    }
+  },
+  "settings_key_scancodes": [
+    66
+  ],
+  "sky_intensity": 60,
+  "show_stats": true,
+  "app_library": true,
+  "show_sleep_pill": true,
+  "show_settings_pill": false,
+  "stock_home_redirect": "com.google.android.apps.tv.launcherx"
+}

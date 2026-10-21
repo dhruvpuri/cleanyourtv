@@ -1,0 +1,4 @@
+# XGIMI WM03H ("Vibe One"). Batch 3: Google TV setup wizard. It claims HOME and takes over when the stock
+# launcher is disabled. Wi-Fi network owner checked first: android.uid.system, so safe to disable.
+# Undo: TV_HOST=<ip> tools/restore.sh ~/.cleanyourtv/xgimi-vibe-one/batch3-setupwraith.txt com.google.android.apps.tv.launcherx
+com.google.android.tungsten.setupwraith  # Google TV setup wizard

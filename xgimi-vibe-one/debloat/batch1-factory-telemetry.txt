@@ -1,0 +1,13 @@
+# XGIMI WM03H ("Vibe One", device altai, product seal2, MediaTek), Google TV, Android 11 (SDK 30), build RTMA.250416.186.13970001.
+# Batch 1: factory/demo tools, telemetry, Play auto-install config, unused Google extras.
+# Apply: TV_HOST=<ip> tools/disable.sh ~/.cleanyourtv/xgimi-vibe-one/batch1-factory-telemetry.txt
+# Undo:  TV_HOST=<ip> tools/restore.sh ~/.cleanyourtv/xgimi-vibe-one/batch1-factory-telemetry.txt com.google.android.apps.tv.launcherx
+fusion.android.tv.demo                 # RetailDisplay store demo
+com.xgimi.atvwifiverify                # factory Wi-Fi verification
+com.xgimi.minitvfactory                # factory menu
+com.xgimi.yg.minitvfactory             # factory menu (second copy)
+com.xgimi.bugreportsender              # XGIMI bug report uploader
+com.google.android.feedback            # Google feedback
+android.autoinstalls.config.google.gtvpai  # Play auto-install config for preloads
+com.google.android.play.games          # Play Games
+com.google.android.marvin.talkback     # TalkBack (accessibility)

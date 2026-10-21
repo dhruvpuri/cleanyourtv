@@ -1,0 +1,3 @@
+# XGIMI WM03H ("Vibe One"). Batch 4: stock YouTube app; the owner uses TizenTube (io.gh.reisxd.tizentube.cobalt) instead.
+# Undo: TV_HOST=<ip> tools/restore.sh ~/.cleanyourtv/xgimi-vibe-one/batch4-youtube.txt com.google.android.apps.tv.launcherx
+com.google.android.youtube.tv          # YouTube for TV

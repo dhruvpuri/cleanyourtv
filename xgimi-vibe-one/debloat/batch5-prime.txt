@@ -1,0 +1,3 @@
+# XGIMI WM03H ("Vibe One"). Batch 5: Prime Video, removed at the owner's request.
+# Undo: TV_HOST=<ip> tools/restore.sh ~/.cleanyourtv/xgimi-vibe-one/batch5-prime.txt com.google.android.apps.tv.launcherx
+com.amazon.amazonvideo.livingroom      # Prime Video

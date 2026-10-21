@@ -1,0 +1,6 @@
+# XGIMI WM03H ("Vibe One"). Batch 2: preinstalled apps the owner does not use.
+# Apply: TV_HOST=<ip> tools/disable.sh ~/.cleanyourtv/xgimi-vibe-one/batch2-apps.txt
+# Undo:  TV_HOST=<ip> tools/restore.sh ~/.cleanyourtv/xgimi-vibe-one/batch2-apps.txt com.google.android.apps.tv.launcherx
+com.google.android.youtube.tvmusic     # YouTube Music
+com.netflix.ninja                      # Netflix (preinstalled system copy)
+com.xgimi.gimiplayer                   # XGIMI local video/photo player

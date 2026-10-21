@@ -1,0 +1,6 @@
+# XGIMI WM03H ("Vibe One"). Batch 6: Google TV ambient screensaver (dreamx), replaced by the launcher's Clock screensaver.
+# Original values: screensaver_components and screensaver_default_component were com.google.android.apps.tv.dreamx/.service.Backdrop
+# (see ~/.cleanyourtv/backup-xgimi-wm03h-20261020-1525/settings_secure.txt). Undo the setting with:
+#   tools/tv.py 'settings put secure screensaver_components com.google.android.apps.tv.dreamx/.service.Backdrop'
+# Undo: TV_HOST=<ip> tools/restore.sh ~/.cleanyourtv/xgimi-vibe-one/batch6-ambient.txt com.google.android.apps.tv.launcherx
+com.google.android.apps.tv.dreamx      # Google TV ambient mode screensaver
